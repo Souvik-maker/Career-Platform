@@ -10,3 +10,4 @@ xhtml2pdf>=0.2.5
 langchain-groq>=0.0.1
 sentence-transformers
 torch
+torchvision
