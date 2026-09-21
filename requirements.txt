@@ -7,3 +7,4 @@ python-dotenv>=1.0.0
 psycopg2-binary>=2.9.0
 fpdf2>=2.4.0
 xhtml2pdf>=0.2.5
+langchain-groq>=0.0.1
