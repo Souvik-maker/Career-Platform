@@ -5,7 +5,7 @@ from database import (
     init_db, save_initial_resume, update_resume_analysis, 
     save_parsed_jobs, save_match_results, save_generated_resume, save_market_report
 )
-from utils.pdf_parser import extract_text_from_pdf
+from utils.pdf_parser import extract_text_from_file
 from graph.workflow import build_phase1_pipeline, build_phase2_pipeline, build_phase3_pipeline
 from agents.report_generator import generate_tailored_resume, generate_market_report
 from utils.pdf_generator import generate_resume_html, generate_pdf_bytes_from_html, generate_pdf_bytes
@@ -57,12 +57,14 @@ if "phase3_pipe" not in st.session_state:
     
 # --- PHASE 1 SECTION ---
 st.header("Upload Resume & Analyse Skills")
-uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+# 1. Update file_uploader to accept both pdf and docx
+uploaded_file = st.file_uploader("Upload Resume (PDF or DOCX)", type=["pdf", "docx"])
 
 if uploaded_file:
-    # 1. File Type Extension Check
-    if not uploaded_file.name.lower().endswith(".pdf"):
-        st.warning("⚠️ Unsupported file format! Please upload a valid PDF file.")
+    # 2. File Type Extension Check
+    file_name = uploaded_file.name.lower()
+    if not (file_name.endswith(".pdf") or file_name.endswith(".docx")):
+        st.warning("⚠️ Unsupported file format! Please upload a valid PDF or DOCX file.")
     else:
         if st.button("Process Resume"):
             with st.spinner("Agent 1 (Resume Parser) & Agent 2 (Resume Analyzer) working..."):
@@ -83,12 +85,12 @@ if uploaded_file:
                 for key in keys_to_clear:
                     st.session_state.pop(key, None)
 
-                pdf_bytes = uploaded_file.read()
-                raw_text = extract_text_from_pdf(pdf_bytes)
+                # 3. Use generic file extraction logic instead of extract_text_from_pdf
+                raw_text = extract_text_from_file(uploaded_file)
                 
-                # 2. Check for empty/unreadable text (e.g., scanned images without OCR)
+                # 4. Check for empty/unreadable text
                 if not raw_text or not raw_text.strip():
-                    st.error("⚠️ The uploaded PDF appears to be empty or unreadable text. Please upload a standard text-based PDF resume.")
+                    st.error("⚠️ The uploaded file appears to be empty or unreadable text. Please upload a standard text-based PDF or DOCX resume.")
                 else:
                     resume_id = save_initial_resume(uploaded_file.name, raw_text)
                     
@@ -109,7 +111,7 @@ if uploaded_file:
                    
                     final_p1_state = st.session_state.phase1_pipe.invoke(initial_state)
                     
-                    # 3. Document Validity Guardrail Check
+                    # 5. Document Validity Guardrail Check
                     is_valid = final_p1_state.get("is_valid_resume", True)
                     validation_reason = final_p1_state.get("validation_reason", "Invalid document structure.")
 
@@ -141,8 +143,7 @@ if uploaded_file:
                         st.session_state.current_state = final_p1_state
                         st.session_state.resume_processed = True           
                         st.rerun()
-
-
+                        
 # --- PHASE 2 SECTION ---
 if st.session_state.get("resume_processed"):
     state = st.session_state.current_state
