@@ -1,0 +1,16 @@
+name: Keep Streamlit App Awake
+
+on:
+  schedule:
+    # Runs automatically every 6 hours (at minute 0 of hour 0, 6, 12, and 18 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allows you to manually click "Run workflow" from GitHub UI to test it
+
+jobs:
+  ping-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Streamlit Cloud App
+        run: |
+          # Replace the URL below with your actual Streamlit App URL
+          curl -s -I https://career-platform-ai-sovi.streamlit.app/ | head -n 1
