@@ -12,5 +12,5 @@ jobs:
     steps:
       - name: Ping Streamlit Cloud App
         run: |
-          # Replace the URL below with your actual Streamlit App URL
+          
           curl -s -I https://career-platform-ai-sovi.streamlit.app/ | head -n 1
